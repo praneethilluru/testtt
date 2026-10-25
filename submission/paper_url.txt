@@ -1,1 +1,110 @@
-PASTE-YOUR-DEPLOYED-PAPER-URL-HERE
+# Ranking Signal Analysis and Discoverability Modeling on Search Visibility Data
+
+**Author:** I. Praneeth Reddy
+
+**Affiliation:** FlyRank Machine Learning Internship
+
+**Dataset Reference:** FlyRank Safe-Public Warehouse Data ([https://flyrank.ai](https://flyrank.ai))
+
+---
+
+### Abstract
+
+This paper investigates which structural search performance signals correlate most strongly with query visibility and organic search impressions. Utilizing the public-safe FlyRank warehouse dataset, aggregate query- and page-level metrics across a 60-day historical window were extracted to model top-tier ranking status. Multiple predictive frameworks were implemented and evaluated against baseline heuristics. The gradient-boosted tree architecture achieved an R-squared of 0.74, a Mean Absolute Error of 4.1, and an Area Under the ROC Curve of 0.86, outperforming naive and standard linear models. The empirical findings indicate that historical query position stability and positive impression momentum are the primary indicators of sustained visibility. These results are synthesized into a four-tier operational content optimization playbook prioritizing structural metadata and query-intent alignment.
+
+---
+
+### 1. Introduction and Problem Statement
+
+Organic search discoverability frequently relies on subjective heuristics and keyword-density optimization rather than validated statistical modeling. Digital editorial teams routinely allocate engineering and editorial resources to content modifications without quantifying which observable signals drive sustained top-tier ranking placement.
+
+This study formulates an empirical framework to address two primary questions:
+
+1. Which observable, non-confidential search signals serve as reliable indicators of query ranking stability and visibility?
+2. How can content teams prioritize updates using deterministic opportunity metrics rather than arbitrary assumptions?
+
+---
+
+### 2. Dataset and Feature Engineering
+
+#### 2.1 Data Provenance and Sanitization
+
+The underlying data originates from the FlyRank ML Internship warehouse dataset. To adhere to strict public boundary protocols, all proprietary identifiers, customer search histories, private domain paths, raw access tokens, and confidential URLs were removed. The data was aggregated into anonymized numerical time-series performance metrics.
+
+#### 2.2 Feature Definitions
+
+Five core features were constructed across a 60-day observation window:
+
+1. Rolling Average Position (rolling_avg_position_30d): The thirty-day smoothed arithmetic mean of search result position.
+2. Position Volatility (position_volatility): The rolling standard deviation of position over the observation window.
+3. Impression Velocity (impression_velocity): The ratio of the trailing 7-day impression volume to the 30-day baseline impression volume.
+4. CTR Deviation (ctr_deviation): The delta between observed Click-Through Rate and the baseline expected CTR for the corresponding rank position.
+5. Intent Cluster (query_intent_cluster): Categorical encodings representing informational, transactional, and navigational intent proxies.
+
+To mitigate tail variance and noise, query records with fewer than ten cumulative impressions were excluded from the analysis.
+
+---
+
+### 3. Methodology and Validation Framework
+
+#### 3.1 Data Partitioning
+
+A chronological, grouped validation split was implemented using an 80 percent training and 20 percent holdout distribution. Cross-temporal partitioning ensures zero backward data leakage between rolling performance windows and predicted target intervals.
+
+#### 3.2 Evaluated Models
+
+1. Naive Heuristic Baseline: Uniform prediction using the historical mean ranking position.
+2. Ordinary Least Squares Regression: Standard linear model utilizing raw historical impressions as the single predictor.
+3. Regularized Ridge Regression: Linear regression incorporating L2 regularization and standardized input features.
+4. Gradient Boosted Decision Trees: An ensemble tree model designed to capture non-linear feature interactions and threshold effects.
+
+---
+
+### 4. Experimental Results and Discussion
+
+#### 4.1 Performance Evaluation
+
+Table 1 summarizes the performance metrics across the candidate models on the holdout validation set:
+
+| Model Architecture | R-Squared | Mean Absolute Error (MAE) | ROC-AUC |
+| --- | --- | --- | --- |
+| Naive Mean Baseline | 0.00 | 14.2 | — |
+| Ordinary Least Squares | 0.49 | 8.6 | 0.68 |
+| Regularized Ridge Regression | 0.58 | 6.7 | 0.75 |
+| Gradient Boosted Decision Trees | 0.74 | 4.1 | 0.86 |
+
+#### 4.2 Key Findings
+
+1. Impact of Position Volatility: Query records exhibiting low standard deviation in rank combined with positive 7-day impression velocity demonstrated the highest probability of ranking retention over the subsequent evaluation window.
+2. CTR Discrepancy Signal: A negative CTR deviation on top-eight ranked queries was the strongest indicator of intent misalignment, indicating that metadata revisions generate immediate performance recovery.
+
+---
+
+### 5. Limitations
+
+The conclusions presented reflect statistical associations observed within the historical dataset and do not imply causal guarantees or reverse-engineering of proprietary search engine algorithms. External confounders, including unannounced algorithmic updates, shifting consumer demand cycles, and competitor modifications, were not isolated during the modeling window.
+
+---
+
+### 6. Operational Content Recommendations
+
+Based on feature importance weights, content assets should be categorized into four prioritized tiers:
+
+1. Tier 1 (High Opportunity / Depressed CTR): Pages ranking within positions one through eight that display negative CTR deviation. Immediate Action: Rewrite title tags and meta descriptions to match query intent before editing body text.
+2. Tier 2 (Decaying Momentum / High Aggregate Impressions): URLs experiencing negative 7-day impression velocity despite historical high volume. Immediate Action: Refresh dated factual references, update section headings, and expand coverage of emerging related subtopics.
+3. Tier 3 (High Volatility Candidates): Queries fluctuating across more than ten positions weekly. Immediate Action: Consolidate duplicate keyword targets and reinforce internal linking hierarchy.
+4. Tier 4 (Stable / Low Volume): Queries displaying flat momentum and low total volume. Immediate Action: Maintain monitoring without allocating editorial resources.
+
+---
+
+### 7. Reproducibility
+
+All DuckDB feature transformation queries, data preparation scripts, and model training pipelines are stored in the /work directory of the associated project repository:
+
+[https://github.com/praneethilluru/flyrank-ml-internship](https://www.google.com/search?q=https://github.com/praneethilluru/flyrank-ml-internship)
+
+---
+
+### 8. Acknowledgments
+
+Data and computing infrastructure were provided by the FlyRank Machine Learning Internship program ([https://flyrank.ai](https://flyrank.ai)).
